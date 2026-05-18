@@ -99,6 +99,65 @@ app.get("/users", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+app.get('/check-subscription/:telegram_id', async (req, res) => {
+
+  try {
+
+    const { telegram_id } = req.params;
+
+    const result = await pool.query(
+      'SELECT subscription_active, subscription_until FROM users WHERE telegram_id = $1',
+      [telegram_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({
+        active: false
+      });
+    }
+
+    const user = result.rows[0];
+
+    if (!user.subscription_active) {
+      return res.json({
+        active: false
+      });
+    }
+
+    if (user.subscription_until) {
+
+      const now = new Date();
+      const until = new Date(user.subscription_until);
+
+      if (until < now) {
+
+        await pool.query(
+          'UPDATE users SET subscription_active = false WHERE telegram_id = $1',
+          [telegram_id]
+        );
+
+        return res.json({
+          active: false
+        });
+      }
+    }
+
+    res.json({
+      active: true,
+      until: user.subscription_until
+    });
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      active: false
+    });
+
+  }
+
+});
 
 app.listen(PORT, () => {
   console.log("SERVER STARTED:", PORT);
