@@ -9,7 +9,7 @@ bot.start(async (ctx) => {
     await ctx.replyWithPhoto(
 
       {
-        url: 'https://buster-app-three.vercel.app/assets/welcome.png'
+        url: 'https://buster-app-three.vercel.app/assets/welcome.jpeg'
       },
 
       {
