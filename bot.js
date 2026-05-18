@@ -4,13 +4,8 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 bot.start(async (ctx) => {
 
-  await ctx.replyWithPhoto(
-    {
-      url: 'https://buster-app-three.vercel.app/bg2.png'
-    },
+  await ctx.reply(
 
-    {
-      caption:
 `🚀 Добро пожаловать в BUSTER
 
 Инструмент для водителей нового поколения.
@@ -22,15 +17,15 @@ bot.start(async (ctx) => {
 
 Нажми кнопку ниже чтобы открыть приложение.`,
 
-      ...Markup.inlineKeyboard([
-        [
-          Markup.button.webApp(
-            '🚀 ОТКРЫТЬ BUSTER',
-            'https://buster-app-three.vercel.app'
-          )
-        ]
-      ])
-    }
+    Markup.inlineKeyboard([
+      [
+        Markup.button.webApp(
+          '🚀 ОТКРЫТЬ BUSTER',
+          'https://buster-app-three.vercel.app'
+        )
+      ]
+    ])
+
   );
 
 });
