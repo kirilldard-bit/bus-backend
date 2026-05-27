@@ -1,3 +1,12 @@
+const OpenAI =
+  require('openai');
+
+const openai =
+  new OpenAI({
+    apiKey:
+      process.env.OPENAI_API_KEY
+  });
+
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
@@ -158,6 +167,76 @@ app.get('/check-subscription/:telegram_id', async (req, res) => {
   }
 
 });
+
+app.post(
+  '/ai-chat',
+  async (req, res) => {
+
+    try {
+
+      const {
+        message
+      } = req.body;
+
+      const completion =
+        await openai.chat.completions.create({
+
+          model: 'gpt-4o-mini',
+
+          messages: [
+
+            {
+              role: 'system',
+              content: `
+Ты AI ассистент
+для водителя такси.
+
+Ты анализируешь:
+районы,
+спрос,
+простой,
+время суток,
+погоду,
+пробки
+и активность города.
+
+Отвечай кратко,
+полезно и по делу.
+`
+            },
+
+            {
+              role: 'user',
+              content: message
+            }
+
+          ]
+
+        });
+
+      const reply =
+        completion.choices[0]
+        .message.content;
+
+      res.json({
+        reply
+      });
+
+    } catch (err) {
+
+  console.log(
+    'OPENAI ERROR:',
+    err
+  );
+
+  res.status(500).json({
+    error: err.message
+  });
+
+}
+
+  }
+);
 
 app.listen(PORT, () => {
   console.log("SERVER STARTED:", PORT);
