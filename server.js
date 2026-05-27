@@ -230,9 +230,9 @@ app.post(
     } catch (err) {
 
   console.log(
-    'OPENAI ERROR:',
-    err
-  );
+  'OPENAI FULL ERROR:',
+  JSON.stringify(err, null, 2)
+);
 
   res.status(500).json({
     error: err.message
