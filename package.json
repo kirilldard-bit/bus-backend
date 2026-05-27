@@ -4,7 +4,8 @@
   "main": "server.js",
   "scripts": {
 
-"start": "node server.js"
+"start":
+"concurrently \"node server.js\" \"node bot.js\""
 
   },
   "dependencies": {
