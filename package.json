@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "concurrently \"node server.js\" \"node bot.js\""
+
+"start": "node server.js"
+
   },
   "dependencies": {
     "concurrently": "^9.2.1",
