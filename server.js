@@ -230,6 +230,11 @@ app.post(
       const weather =
   await getWeather();
 
+  console.log(
+  'WEATHER DATA:',
+  weather
+);
+
       const completion =
         await openai.chat.completions.create({
 
