@@ -1,6 +1,13 @@
 const OpenAI =
   require('openai');
 
+  const fetch =
+  (...args) =>
+    import('node-fetch')
+      .then(({default: fetch}) =>
+        fetch(...args)
+      );
+
 const openai =
   new OpenAI({
     apiKey:
@@ -173,6 +180,43 @@ app.get('/check-subscription/:telegram_id', async (req, res) => {
 
 });
 
+async function getWeather() {
+
+  try {
+
+    const response =
+      await fetch(
+
+        `https://api.openweathermap.org/data/2.5/weather?q=Moscow&appid=${process.env.WEATHER_API_KEY}&units=metric&lang=ru`
+
+      );
+
+    const data =
+      await response.json();
+
+    return {
+
+      temp:
+        data.main.temp,
+
+      weather:
+        data.weather[0].description
+
+    };
+
+  } catch (err) {
+
+    console.log(
+      'WEATHER ERROR:',
+      err
+    );
+
+    return null;
+
+  }
+
+}
+
 app.post(
   '/ai-chat',
   async (req, res) => {
@@ -182,6 +226,9 @@ app.post(
       const {
         message
       } = req.body;
+
+      const weather =
+  await getWeather();
 
       const completion =
         await openai.chat.completions.create({
@@ -193,20 +240,34 @@ app.post(
             {
               role: 'system',
               content: `
+
 Ты AI ассистент
 для водителя такси.
 
-Ты анализируешь:
-районы,
-спрос,
-простой,
-время суток,
-погоду,
-пробки
-и активность города.
+Текущая погода:
 
-Отвечай кратко,
-полезно и по делу.
+${
+  weather
+    ? `
+Температура:
+${weather.temp}°C
+
+Погода:
+${weather.weather}
+`
+    : 'Погода недоступна'
+}
+
+Учитывай:
+
+- погоду
+- спрос
+- активность
+- время суток
+
+Давай полезные советы
+для водителя такси.
+
 `
             },
 
