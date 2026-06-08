@@ -322,6 +322,65 @@ ${weather.weather}
   }
 );
 
+app.post('/activate-trial', async (req, res) => {
+
+  try {
+
+    const { telegram_id } = req.body;
+
+    const result = await pool.query(
+      `SELECT trial_used
+       FROM users
+       WHERE telegram_id = $1`,
+      [telegram_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    if (result.rows[0].trial_used) {
+      return res.json({
+        success: false,
+        error: 'Пробный период уже использован'
+      });
+    }
+
+    const trialUntil = new Date(
+      Date.now() + 60 * 60 * 1000
+    );
+
+    await pool.query(
+      `
+      UPDATE users
+      SET
+        subscription_active = true,
+        subscription_until = $1,
+        trial_used = true
+      WHERE telegram_id = $2
+      `,
+      [trialUntil, telegram_id]
+    );
+
+    res.json({
+      success: true
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      success: false
+    });
+
+  }
+
+});
+
 app.listen(PORT, () => {
   console.log("SERVER STARTED:", PORT);
 });
