@@ -336,6 +336,12 @@ app.post(
   longitude
 } = req.body;
 
+console.log(
+  'USER LOCATION:',
+  latitude,
+  longitude
+);
+
 const nearbyDistricts =
   await getNearbyDistricts(
     latitude,
