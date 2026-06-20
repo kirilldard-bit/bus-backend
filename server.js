@@ -186,10 +186,7 @@ app.get('/check-subscription/:telegram_id', async (req, res) => {
 
 });
 
-async function getNearbyDistricts(
-  lat,
-  lon
-) {
+async function getNearbyDistricts(lat, lon) {
 
   if (!lat || !lon) {
     return [];
@@ -197,80 +194,53 @@ async function getNearbyDistricts(
 
   try {
 
-    const response =
-      await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=12&addressdetails=1`,
+    const offsets = [
+      [0.045, 0],
+      [-0.045, 0],
+      [0, 0.045],
+      [0, -0.045],
+      [0.032, 0.032],
+      [0.032, -0.032],
+      [-0.032, 0.032],
+      [-0.032, -0.032]
+    ];
+
+    const districts = [];
+
+    for (const [latOffset, lonOffset] of offsets) {
+
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${Number(lat) + latOffset}&lon=${Number(lon) + lonOffset}&zoom=14&addressdetails=1`,
         {
           headers: {
-            'User-Agent':
-              'BUSTER/1.0'
+            'User-Agent': 'BUSTER/1.0'
           }
         }
       );
 
-    const data =
-      await response.json();
+      const data = await response.json();
 
-    const district =
-      data.address.city_district ||
-      data.address.suburb ||
-      data.address.neighbourhood ||
-      '';
-
-    const city =
-      data.address.city ||
-      data.address.town ||
-      data.address.village ||
-      '';
-
-    const searchResponse =
-      await fetch(
-        `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(city)}&format=json&limit=30`,
-        {
-          headers: {
-            'User-Agent':
-              'BUSTER/1.0'
-          }
-        }
-      );
-
-    const places =
-      await searchResponse.json();
-
-    const districts =
-      [];
-
-    places.forEach(place => {
+      const district =
+        data?.address?.city_district ||
+        data?.address?.suburb ||
+        data?.address?.neighbourhood ||
+        data?.address?.quarter ||
+        data?.address?.borough ||
+        data?.address?.town ||
+        data?.address?.village ||
+        data?.address?.city ||
+        null;
 
       if (
-        place.display_name &&
-        !place.display_name.includes(
-          district
-        )
+        district &&
+        !districts.includes(district)
       ) {
-
-        const name =
-          place.display_name
-            .split(',')[0]
-            .trim();
-
-        if (
-          name &&
-          !districts.includes(name)
-        ) {
-
-          districts.push(name);
-
-        }
-
+        districts.push(district);
       }
 
-    });
+    }
 
-    return districts.slice(
-      0,
-      5
-    );
+    return districts.slice(0, 5);
 
   } catch (err) {
 
