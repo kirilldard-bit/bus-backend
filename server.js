@@ -337,6 +337,11 @@ app.post(
 } = req.body;
 
 console.log(
+  'REQUEST BODY:',
+  JSON.stringify(req.body, null, 2)
+);
+
+console.log(
   'USER LOCATION:',
   latitude,
   longitude
