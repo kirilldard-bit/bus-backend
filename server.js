@@ -186,6 +186,105 @@ app.get('/check-subscription/:telegram_id', async (req, res) => {
 
 });
 
+async function getNearbyDistricts(
+  lat,
+  lon
+) {
+
+  if (!lat || !lon) {
+    return [];
+  }
+
+  try {
+
+    const response =
+      await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=12&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent':
+              'BUSTER/1.0'
+          }
+        }
+      );
+
+    const data =
+      await response.json();
+
+    const district =
+      data.address.city_district ||
+      data.address.suburb ||
+      data.address.neighbourhood ||
+      '';
+
+    const city =
+      data.address.city ||
+      data.address.town ||
+      data.address.village ||
+      '';
+
+    const searchResponse =
+      await fetch(
+        `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(city)}&format=json&limit=30`,
+        {
+          headers: {
+            'User-Agent':
+              'BUSTER/1.0'
+          }
+        }
+      );
+
+    const places =
+      await searchResponse.json();
+
+    const districts =
+      [];
+
+    places.forEach(place => {
+
+      if (
+        place.display_name &&
+        !place.display_name.includes(
+          district
+        )
+      ) {
+
+        const name =
+          place.display_name
+            .split(',')[0]
+            .trim();
+
+        if (
+          name &&
+          !districts.includes(name)
+        ) {
+
+          districts.push(name);
+
+        }
+
+      }
+
+    });
+
+    return districts.slice(
+      0,
+      5
+    );
+
+  } catch (err) {
+
+    console.log(
+      'DISTRICT SEARCH ERROR:',
+      err
+    );
+
+    return [];
+
+  }
+
+}
+
 async function getWeather() {
 
   try {
@@ -232,8 +331,21 @@ app.post(
       const {
   message,
   district,
-  city
+  city,
+  latitude,
+  longitude
 } = req.body;
+
+const nearbyDistricts =
+  await getNearbyDistricts(
+    latitude,
+    longitude
+  );
+
+console.log(
+  'NEARBY DISTRICTS:',
+  nearbyDistricts
+);
 
       const weather =
   await getWeather();
@@ -263,6 +375,9 @@ ${city || 'Неизвестно'}
 
 Текущий район пользователя:
 ${district || 'Неизвестно'}
+
+Ближайшие районы:
+${nearbyDistricts.join('\n')}
 
 Текущая погода:
 
@@ -299,6 +414,14 @@ ${weather.weather}
 В остальных случаях (примерно 40% ответов) можешь рекомендовать начать движение в сторону одного из ближайших и логично соседних районов.
 
 Используй свои знания географии города и региона для определения ближайших районов.
+
+Если список ближайших районов передан системой, используй только районы из этого списка.
+
+Не придумывай другие районы.
+
+Если рекомендуешь смещение, выбирай только из списка ближайших районов.
+
+Приоритет отдавай первым районам списка, так как они находятся ближе всего к текущему местоположению пользователя.
 
 Не предлагай удалённые районы и не предлагай длительные перемещения.
 
