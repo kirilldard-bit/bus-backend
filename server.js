@@ -14,11 +14,6 @@ const openai =
       process.env.OPENAI_API_KEY
   });
 
-  console.log(
-  'OPENAI KEY:',
-  process.env.OPENAI_API_KEY
-);
-
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
