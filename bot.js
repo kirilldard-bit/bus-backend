@@ -21,13 +21,40 @@ bot.start(async (ctx) => {
 Нажми кнопку ниже чтобы открыть приложение.`,
 
         ...Markup.inlineKeyboard([
-          [
-            Markup.button.webApp(
-              '🚀 ОТКРЫТЬ BUSTER',
-              'https://buster-app-three.vercel.app'
-            )
-          ]
-        ])
+
+  [
+    Markup.button.webApp(
+      '🚀 ОТКРЫТЬ BUSTER',
+      'https://buster-app-three.vercel.app'
+    )
+  ],
+
+  [
+    Markup.button.url(
+      '📄 Политика',
+      'https://buster-app-three.vercel.app/privacy.html'
+    ),
+
+    Markup.button.url(
+      '📑 Оферта',
+      'https://buster-app-three.vercel.app/oferta.html'
+    )
+  ],
+
+  [
+    Markup.button.url(
+      '📞 Поддержка',
+      'https://t.me/buster_support'
+    ),
+
+    Markup.button.url(
+      '📢 Новости',
+      'https://t.me/buster_chanel'
+    )
+  ]
+
+])
+
 
       }
 
