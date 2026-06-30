@@ -64,6 +64,7 @@ app.post("/save-user", async (req, res) => {
         success: false,
         error: "telegram_id required",
       });
+
     }
 
     await pool.query(
@@ -94,6 +95,49 @@ app.post("/save-user", async (req, res) => {
       success: false,
       error: err.message,
     });
+  }
+});
+
+app.get("/user/:telegram_id", async (req, res) => {
+  try {
+
+    const { telegram_id } = req.params;
+
+    const result = await pool.query(
+      `
+      SELECT
+        city,
+        tariff,
+        rating
+      FROM users
+      WHERE telegram_id = $1
+      `,
+      [telegram_id]
+    );
+
+    if (result.rows.length === 0) {
+
+      return res.json({
+        success: true,
+        user: null,
+      });
+
+    }
+
+    res.json({
+      success: true,
+      user: result.rows[0],
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+
   }
 });
 
