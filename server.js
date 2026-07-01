@@ -31,22 +31,56 @@ const pool = new Pool({
 });
 
 async function initDB() {
+
   try {
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
+
         id SERIAL PRIMARY KEY,
+
         telegram_id BIGINT UNIQUE NOT NULL,
+
         city TEXT,
+
         tariff TEXT,
+
         rating TEXT,
+
+        subscription_active BOOLEAN DEFAULT FALSE,
+
+        subscription_until TIMESTAMP,
+
+        trial_used BOOLEAN DEFAULT FALSE,
+
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
       );
     `);
 
+    await pool.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS subscription_active BOOLEAN DEFAULT FALSE;
+    `);
+
+    await pool.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS subscription_until TIMESTAMP;
+    `);
+
+    await pool.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS trial_used BOOLEAN DEFAULT FALSE;
+    `);
+
     console.log("DATABASE READY");
+
   } catch (err) {
+
     console.error("DB INIT ERROR:", err);
+
   }
+
 }
 
 initDB();
@@ -582,19 +616,37 @@ app.post('/activate-trial', async (req, res) => {
 
     const { telegram_id } = req.body;
 
-    const result = await pool.query(
-      `SELECT trial_used
-       FROM users
-       WHERE telegram_id = $1`,
-      [telegram_id]
-    );
+    let result = await pool.query(
+  `
+  SELECT trial_used
+  FROM users
+  WHERE telegram_id = $1
+  `,
+  [telegram_id]
+);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-    }
+if (result.rows.length === 0) {
+
+  await pool.query(
+    `
+    INSERT INTO users (
+      telegram_id
+    )
+    VALUES ($1)
+    `,
+    [telegram_id]
+  );
+
+  result = await pool.query(
+    `
+    SELECT trial_used
+    FROM users
+    WHERE telegram_id = $1
+    `,
+    [telegram_id]
+  );
+
+}
 
     if (result.rows[0].trial_used) {
       return res.json({
